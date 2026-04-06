@@ -4,10 +4,28 @@
     <title>Solar System</title>
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script>
+
       AFRAME.registerComponent('orbit', {
         schema: {
           radius: { type: 'number', default: 5 },
           speed:  { type: 'number', default: 1 },
+          offset: { type: 'number', default: 0 }
+        },
+        init: function() {
+          this.angle = this.data.offset;
+        },
+        tick: function(time, delta) {
+          this.angle += (delta / 1000) * this.data.speed;
+          const x = Math.cos(this.angle) * this.data.radius;
+          const z = Math.sin(this.angle) * this.data.radius;
+          this.el.setAttribute('position', { x: x, y: 0, z: z });
+        }
+      });
+
+      AFRAME.registerComponent('moon-orbit', {
+        schema: {
+          radius: { type: 'number', default: 1 },
+          speed:  { type: 'number', default: 3 },
           offset: { type: 'number', default: 0 }
         },
         init: function() {
@@ -33,21 +51,46 @@
           this.el.setAttribute('material', 'color', `rgb(${r},${g},${b})`);
         }
       });
+
+      AFRAME.registerComponent('starfield', {
+        init: function() {
+          const scene = this.el;
+          for (let i = 0; i < 300; i++) {
+            const star = document.createElement('a-sphere');
+            const theta = Math.random() * 2 * Math.PI;
+            const phi   = Math.acos(2 * Math.random() - 1);
+            const r     = 80 + Math.random() * 20;
+            const x = r * Math.sin(phi) * Math.cos(theta);
+            const y = r * Math.sin(phi) * Math.sin(theta);
+            const z = r * Math.cos(phi);
+            const size = 0.05 + Math.random() * 0.15;
+            star.setAttribute('position', `${x} ${y} ${z}`);
+            star.setAttribute('radius', size);
+            star.setAttribute('color', '#ffffff');
+            star.setAttribute('material', 'shader: flat');
+            scene.appendChild(star);
+          }
+        }
+      });
+
     </script>
   </head>
   <body>
-    <a-scene>
+    <a-scene starfield>
+
       <a-assets>
         <img id="sun-tex"     src="https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg" crossorigin="anonymous">
         <img id="mercury-tex" src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg" crossorigin="anonymous">
         <img id="venus-tex"   src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Venus-real_color.jpg" crossorigin="anonymous">
         <img id="earth-tex"   src="https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg" crossorigin="anonymous">
         <img id="mars-tex"    src="https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg" crossorigin="anonymous">
+        <img id="moon-tex"    src="https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg" crossorigin="anonymous">
       </a-assets>
 
       <a-light type="ambient" color="#333333"></a-light>
       <a-light type="point" color="#ffffff" intensity="2" position="0 0 0"></a-light>
 
+      <!-- Sun -->
       <a-sphere
         id="sun"
         position="0 0 0"
@@ -57,36 +100,43 @@
         animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"
       ></a-sphere>
 
+      <!-- Orbit Rings -->
+      <a-torus position="0 0 0" radius="5"  tube="0.02" color="#ffffff" material="opacity: 0.2; transparent: true" rotation="90 0 0"></a-torus>
+      <a-torus position="0 0 0" radius="8"  tube="0.02" color="#ffffff" material="opacity: 0.2; transparent: true" rotation="90 0 0"></a-torus>
+      <a-torus position="0 0 0" radius="12" tube="0.02" color="#ffffff" material="opacity: 0.2; transparent: true" rotation="90 0 0"></a-torus>
+      <a-torus position="0 0 0" radius="16" tube="0.02" color="#ffffff" material="opacity: 0.2; transparent: true" rotation="90 0 0"></a-torus>
+
+      <!-- Mercury -->
       <a-entity orbit="radius: 5; speed: 1.6; offset: 0">
-        <a-sphere
-          radius="0.2"
-          src="#mercury-tex"
-          animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"
-        ></a-sphere>
+        <a-sphere radius="0.2" src="#mercury-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 3000">
+        </a-sphere>
       </a-entity>
 
+      <!-- Venus -->
       <a-entity orbit="radius: 8; speed: 1.1; offset: 1">
-        <a-sphere
-          radius="0.4"
-          src="#venus-tex"
-          animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"
-        ></a-sphere>
+        <a-sphere radius="0.4" src="#venus-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
+        </a-sphere>
       </a-entity>
 
-      <a-entity orbit="radius: 12; speed: 0.8; offset: 2">
-        <a-sphere
-          radius="0.45"
-          src="#earth-tex"
-          animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"
-        ></a-sphere>
+      <!-- Earth with Moon -->
+      <a-entity id="earth-system" orbit="radius: 12; speed: 0.8; offset: 2">
+        <a-sphere radius="0.45" src="#earth-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
+        </a-sphere>
+        <a-entity moon-orbit="radius: 0.9; speed: 3; offset: 0">
+          <a-sphere radius="0.12" src="#moon-tex"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+          </a-sphere>
+        </a-entity>
       </a-entity>
 
+      <!-- Mars -->
       <a-entity orbit="radius: 16; speed: 0.5; offset: 4">
-        <a-sphere
-          radius="0.3"
-          src="#mars-tex"
-          animation="property: rotation; to: 0 360 0; loop: true; dur: 6000"
-        ></a-sphere>
+        <a-sphere radius="0.3" src="#mars-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
+        </a-sphere>
       </a-entity>
 
       <a-sky color="#000005"></a-sky>
