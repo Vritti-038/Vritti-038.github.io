@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Solar System</title>
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <script>
+      AFRAME.registerComponent('orbit', {
+        schema: {
+          radius: { type: 'number', default: 5 },
+          speed:  { type: 'number', default: 1 },
+          offset: { type: 'number', default: 0 }
+        },
+        init: function() {
+          this.angle = this.data.offset;
+        },
+        tick: function(time, delta) {
+          this.angle += (delta / 1000) * this.data.speed;
+          const x = Math.cos(this.angle) * this.data.radius;
+          const z = Math.sin(this.angle) * this.data.radius;
+          this.el.setAttribute('position', { x: x, y: 0, z: z });
+        }
+      });
+
+      AFRAME.registerComponent('sun-color', {
+        init: function() {
+          this.t = 0;
+        },
+        tick: function(time, delta) {
+          this.t += delta / 1000;
+          const r = Math.floor(200 + 55 * Math.sin(this.t * 0.5));
+          const g = Math.floor(100 + 60 * Math.sin(this.t * 0.3));
+          const b = Math.floor(20  + 20 * Math.sin(this.t * 0.7));
+          this.el.setAttribute('material', 'color', `rgb(${r},${g},${b})`);
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <a-scene>
+      <a-assets>
+        <img id="sun-tex"     src="https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg" crossorigin="anonymous">
+        <img id="mercury-tex" src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg" crossorigin="anonymous">
+        <img id="venus-tex"   src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Venus-real_color.jpg" crossorigin="anonymous">
+        <img id="earth-tex"   src="https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg" crossorigin="anonymous">
+        <img id="mars-tex"    src="https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg" crossorigin="anonymous">
+      </a-assets>
+
+      <a-light type="ambient" color="#333333"></a-light>
+      <a-light type="point" color="#ffffff" intensity="2" position="0 0 0"></a-light>
+
+      <a-sphere
+        id="sun"
+        position="0 0 0"
+        radius="2"
+        src="#sun-tex"
+        sun-color
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"
+      ></a-sphere>
+
+      <a-entity orbit="radius: 5; speed: 1.6; offset: 0">
+        <a-sphere
+          radius="0.2"
+          src="#mercury-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"
+        ></a-sphere>
+      </a-entity>
+
+      <a-entity orbit="radius: 8; speed: 1.1; offset: 1">
+        <a-sphere
+          radius="0.4"
+          src="#venus-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"
+        ></a-sphere>
+      </a-entity>
+
+      <a-entity orbit="radius: 12; speed: 0.8; offset: 2">
+        <a-sphere
+          radius="0.45"
+          src="#earth-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"
+        ></a-sphere>
+      </a-entity>
+
+      <a-entity orbit="radius: 16; speed: 0.5; offset: 4">
+        <a-sphere
+          radius="0.3"
+          src="#mars-tex"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 6000"
+        ></a-sphere>
+      </a-entity>
+
+      <a-sky color="#000005"></a-sky>
+
+      <a-entity
+        position="0 5 25"
+        camera
+        look-controls
+        wasd-controls="acceleration: 20"
+      ></a-entity>
+
+    </a-scene>
+  </body>
+</html>
